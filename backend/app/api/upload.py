@@ -27,17 +27,22 @@ async def upload_dataset(file: UploadFile = File(...)):
     return {
     "message": "Dataset uploaded successfully.",
     "audit": {
-        "id": result["audit"].id,
-        "filename": result["audit"].filename,
-        "total_rows": result["audit"].total_rows,
-        "total_columns": result["audit"].total_columns,
-        "missing_percentage": result["audit"].missing_percentage,
-        "duplicate_percentage": result["audit"].duplicate_percentage,
-        "quality_score": result["audit"].quality_score,
-        "created_at": result["audit"].created_at,
-        "preview": result["preview"],
-        "columns": result["columns"],
-    }
+    "id": result["audit"].id,
+    "filename": result["audit"].filename,
+    "total_rows": result["audit"].total_rows,
+    "total_columns": result["audit"].total_columns,
+    "missing_percentage": result["audit"].missing_percentage,
+    "duplicate_percentage": result["audit"].duplicate_percentage,
+    "quality_score": result["audit"].quality_score,
+
+    "missing_by_column": result["missing_by_column"],
+    "dtype_distribution": result["dtype_distribution"],
+    "numeric_summary": result["numeric_summary"],
+    "numeric_columns": result["numeric_columns"],
+    "categorical_columns": result["categorical_columns"],
+    "preview": result["preview"],
+    "columns": result["columns"],
+}
 }
     
 @router.get("/audits")

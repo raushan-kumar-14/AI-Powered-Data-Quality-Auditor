@@ -1,4 +1,6 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
+import jsPDF from "jspdf";
+import * as XLSX from "xlsx";
 import { FaCloudUploadAlt, FaFileAlt, FaUpload } from "react-icons/fa";
 import {
   FiDatabase,
@@ -20,6 +22,12 @@ import {
   YAxis,
   CartesianGrid,
 } from "recharts";
+import {
+  useReactTable,
+  getCoreRowModel,
+  getFilteredRowModel,
+  flexRender,
+} from "@tanstack/react-table";
 
 const COLORS = ["#4F46E5", "#F59E0B", "#EF4444"];
 
@@ -27,6 +35,8 @@ export default function FileUpload() {
   const [selectedFile, setSelectedFile] = useState(null);
   const [loading, setLoading] = useState(false);
   const [audit, setAudit] = useState(null);
+  const [globalFilter, setGlobalFilter] = useState("");
+
 
   const handleUpload = async () => {
     if (!selectedFile) {
@@ -67,6 +77,108 @@ export default function FileUpload() {
     ]
   : [];
 
+  const missingChartData =
+  audit?.missing_by_column
+    ? Object.entries(audit.missing_by_column).map(
+        ([name, value]) => ({
+          name,
+          value,
+        })
+      )
+    : [];
+
+const typeChartData =
+  audit?.dtype_distribution
+    ? Object.entries(audit.dtype_distribution).map(
+        ([name, value]) => ({
+          name,
+          value,
+        })
+      )
+    : [];
+const downloadReport = () => {
+  if (!audit) return;
+
+  const doc = new jsPDF();
+
+  doc.setFontSize(20);
+  doc.text("Data Quality Audit Report", 20, 20);
+
+  doc.setFontSize(12);
+  doc.text(`Dataset: ${audit.filename}`, 20, 40);
+  doc.text(`Rows: ${audit.total_rows}`, 20, 50);
+  doc.text(`Columns: ${audit.total_columns}`, 20, 60);
+  doc.text(`Missing Data: ${audit.missing_percentage}%`, 20, 70);
+  doc.text(`Duplicate Data: ${audit.duplicate_percentage}%`, 20, 80);
+  doc.text(`Quality Score: ${audit.quality_score}%`, 20, 90);
+
+  doc.save(`${audit.filename}-audit-report.pdf`);
+};
+const columns = useMemo(() => {
+  if (!audit?.columns) return [];
+
+  return audit.columns.map((column) => ({
+    accessorKey: column,
+    header: column,
+  }));
+}, [audit]);
+const table = useReactTable({
+  data: audit?.preview || [],
+  columns,
+  state: {
+    globalFilter,
+  },
+  onGlobalFilterChange: setGlobalFilter,
+  getCoreRowModel: getCoreRowModel(),
+  getFilteredRowModel: getFilteredRowModel(),
+});
+const downloadExcelReport = () => {
+  if (!audit) return;
+
+  const workbook = XLSX.utils.book_new();
+
+  // Summary sheet
+  const summary = [
+    { Metric: "Dataset", Value: audit.filename },
+    { Metric: "Rows", Value: audit.total_rows },
+    { Metric: "Columns", Value: audit.total_columns },
+    { Metric: "Missing %", Value: audit.missing_percentage },
+    { Metric: "Duplicate %", Value: audit.duplicate_percentage },
+    { Metric: "Quality Score", Value: audit.quality_score },
+  ];
+
+  const summarySheet = XLSX.utils.json_to_sheet(summary);
+  XLSX.utils.book_append_sheet(workbook, summarySheet, "Summary");
+
+  // Data Preview sheet
+  if (audit.preview) {
+    const previewSheet = XLSX.utils.json_to_sheet(audit.preview);
+    XLSX.utils.book_append_sheet(workbook, previewSheet, "Preview");
+  }
+
+  // Numeric Statistics sheet
+  if (
+    audit.numeric_summary &&
+    audit.numeric_summary.mean
+  ) {
+    const stats = Object.keys(audit.numeric_summary.mean).map((column) => ({
+      Column: column,
+      Mean: audit.numeric_summary.mean[column],
+      Median: audit.numeric_summary.median[column],
+      Std: audit.numeric_summary.std[column],
+      Min: audit.numeric_summary.min[column],
+      Max: audit.numeric_summary.max[column],
+    }));
+
+    const statsSheet = XLSX.utils.json_to_sheet(stats);
+    XLSX.utils.book_append_sheet(workbook, statsSheet, "Statistics");
+  }
+
+  XLSX.writeFile(
+    workbook,
+    `${audit.filename}-audit-report.xlsx`
+  );
+};
   return (
     <div className="bg-white rounded-3xl border-2 border-dashed border-indigo-300 shadow-sm p-14">
 
@@ -193,9 +305,27 @@ export default function FileUpload() {
       {audit && (
   <div className="mt-12">
 
-    <h2 className="text-3xl font-bold text-gray-800 mb-8">
-  Audit Results
-</h2>
+    <div className="flex justify-between items-center mb-8">
+  <h2 className="text-3xl font-bold text-gray-800">
+    Audit Results
+  </h2>
+
+  <div className="flex gap-3">
+  <button
+    onClick={downloadExcelReport}
+    className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow transition"
+  >
+    Download Excel
+  </button>
+
+  <button
+    onClick={downloadReport}
+    className="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2 rounded-lg shadow transition"
+  >
+    Download PDF
+  </button>
+</div>
+</div>
 
 <div className="bg-white rounded-2xl shadow-md p-6 border mb-8">
   <h3 className="text-2xl font-bold text-gray-800 mb-6">
@@ -345,8 +475,209 @@ export default function FileUpload() {
       </div>
       <div className="mt-10 bg-white rounded-2xl shadow-md border p-6">
   <h2 className="text-2xl font-bold text-gray-800 mb-6">
+  Data Insights
+</h2>
+
+<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+  <div className="bg-indigo-50 rounded-xl p-5 border">
+    <p className="text-sm text-gray-500">Rows</p>
+    <h3 className="text-3xl font-bold mt-2">
+      {audit.total_rows}
+    </h3>
+  </div>
+
+  <div className="bg-blue-50 rounded-xl p-5 border">
+    <p className="text-sm text-gray-500">Columns</p>
+    <h3 className="text-3xl font-bold mt-2">
+      {audit.total_columns}
+    </h3>
+  </div>
+
+  <div className="bg-green-50 rounded-xl p-5 border">
+    <p className="text-sm text-gray-500">
+      Numeric Columns
+    </p>
+    <h3 className="text-3xl font-bold mt-2">
+      {audit.numeric_columns}
+    </h3>
+  </div>
+
+  <div className="bg-yellow-50 rounded-xl p-5 border">
+    <p className="text-sm text-gray-500">
+      Categorical Columns
+    </p>
+    <h3 className="text-3xl font-bold mt-2">
+      {audit.categorical_columns}
+    </h3>
+  </div>
+
+</div>
+
+<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <div className="bg-gray-50 rounded-xl p-4 border">
+      <h3 className="font-semibold mb-4">
+        Missing Values by Column
+      </h3>
+
+      <ResponsiveContainer width="100%" height={300}>
+        <BarChart data={missingChartData}>
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis dataKey="name" />
+          <YAxis />
+          <Tooltip />
+          <Bar dataKey="value" />
+        </BarChart>
+      </ResponsiveContainer>
+    </div>
+
+    <div className="bg-gray-50 rounded-xl p-4 border">
+      <h3 className="font-semibold mb-4">
+        Data Types Distribution
+      </h3>
+
+      <ResponsiveContainer width="100%" height={300}>
+        <PieChart>
+          <Pie
+            data={typeChartData}
+            dataKey="value"
+            nameKey="name"
+            outerRadius={90}
+            label
+          >
+            {typeChartData.map((entry, index) => (
+              <Cell
+                key={index}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+          </Pie>
+
+          <Tooltip />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
+
+  </div>
+  <div className="mt-8 bg-gray-50 rounded-xl border p-6">
+  <h3 className="text-xl font-semibold mb-6">
+    Numeric Statistics
+  </h3>
+
+  {audit?.numeric_summary &&
+    Object.keys(audit.numeric_summary.mean || {}).length > 0 ? (
+      <div className="overflow-x-auto">
+        <table className="min-w-full border-collapse">
+          <thead>
+            <tr className="bg-indigo-600 text-white">
+              <th className="p-3 text-left">Column</th>
+              <th className="p-3">Mean</th>
+              <th className="p-3">Median</th>
+              <th className="p-3">Std</th>
+              <th className="p-3">Min</th>
+              <th className="p-3">Max</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            {Object.keys(audit.numeric_summary.mean).map((column) => (
+              <tr key={column} className="border-b hover:bg-gray-100">
+                <td className="p-3 font-medium">{column}</td>
+                <td className="p-3 text-center">
+                  {audit.numeric_summary.mean[column]}
+                </td>
+                <td className="p-3 text-center">
+                  {audit.numeric_summary.median[column]}
+                </td>
+                <td className="p-3 text-center">
+                  {audit.numeric_summary.std[column]}
+                </td>
+                <td className="p-3 text-center">
+                  {audit.numeric_summary.min[column]}
+                </td>
+                <td className="p-3 text-center">
+                  {audit.numeric_summary.max[column]}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <p className="text-gray-500">
+        No numeric columns found.
+      </p>
+    )}
+</div>
+</div>
+<div className="mt-10 bg-white rounded-2xl shadow-md border p-6">
+
+  <h2 className="text-2xl font-bold text-gray-800 mb-6">
+    Dataset Information
+  </h2>
+
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+    <div>
+      <p className="text-sm text-gray-500">Filename</p>
+      <p className="font-semibold text-lg break-all">
+        {audit.filename}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-sm text-gray-500">Quality Score</p>
+      <p className="font-semibold text-green-600 text-lg">
+        {audit.quality_score.toFixed(2)}%
+      </p>
+    </div>
+
+    <div>
+      <p className="text-sm text-gray-500">Rows</p>
+      <p className="font-semibold">
+        {audit.total_rows}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-sm text-gray-500">Columns</p>
+      <p className="font-semibold">
+        {audit.total_columns}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-sm text-gray-500">Numeric Columns</p>
+      <p className="font-semibold">
+        {audit.numeric_columns}
+      </p>
+    </div>
+
+    <div>
+      <p className="text-sm text-gray-500">Categorical Columns</p>
+      <p className="font-semibold">
+        {audit.categorical_columns}
+      </p>
+    </div>
+
+  </div>
+
+</div>
+<div className="mt-10 bg-white rounded-2xl shadow-md border p-6">
+  <div className="flex justify-between items-center mb-6">
+  <h2 className="text-2xl font-bold text-gray-800">
     Data Preview
   </h2>
+
+  <input
+    type="text"
+    placeholder="Search..."
+    value={globalFilter}
+    onChange={(e) => setGlobalFilter(e.target.value)}
+    className="border border-gray-300 rounded-lg px-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+  />
+</div>
 
   <div className="overflow-x-auto">
     <table className="min-w-full border-collapse">
@@ -364,22 +695,25 @@ export default function FileUpload() {
       </thead>
 
       <tbody>
-        {audit.preview?.map((row, rowIndex) => (
-          <tr
-            key={rowIndex}
-            className="border-b hover:bg-gray-50"
-          >
-            {audit.columns.map((column) => (
-              <td
-                key={column}
-                className="px-4 py-3 text-sm"
-              >
-                {String(row[column])}
-              </td>
-            ))}
-          </tr>
-        ))}
-      </tbody>
+  {table.getRowModel().rows.map((row) => (
+    <tr
+      key={row.id}
+      className="border-b hover:bg-gray-50"
+    >
+      {row.getVisibleCells().map((cell) => (
+        <td
+          key={cell.id}
+          className="px-4 py-3 text-sm"
+        >
+          {flexRender(
+            cell.column.columnDef.cell,
+            cell.getContext()
+          )}
+        </td>
+      ))}
+    </tr>
+  ))}
+</tbody>
     </table>
   </div>
 </div>
