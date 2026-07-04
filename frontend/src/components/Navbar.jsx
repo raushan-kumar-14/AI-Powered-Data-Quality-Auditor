@@ -1,13 +1,18 @@
 export default function Navbar() {
   return (
-    <div className="bg-white shadow p-5 flex justify-between">
-      <h2 className="font-bold text-xl">
-        AI-Powered Data Quality Auditor
-      </h2>
+    <header className="h-20 bg-white border-b border-gray-200 flex items-center justify-between px-10 shadow-sm">
 
-      <span className="text-gray-500">
+      <h1 className="text-3xl font-bold tracking-tight">
+        AI-Powered Data Quality{" "}
+        <span className="text-indigo-600">
+          Auditor
+        </span>
+      </h1>
+
+      <div className="text-gray-500 font-medium">
         Deloitte Style Dashboard
-      </span>
-    </div>
+      </div>
+
+    </header>
   );
 }

@@ -85,3 +85,4 @@ temp/
 *.pem
 *.key
 *.crt
+backend/uploads/
