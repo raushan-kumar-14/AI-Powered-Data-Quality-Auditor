@@ -7,7 +7,20 @@ import {
 
 export default function Sidebar() {
   return (
-    <aside className="w-64 min-h-screen bg-[#0B1220] text-white flex flex-col justify-between">
+    <aside className="
+    hidden
+    md:flex
+    md:w-56
+    lg:w-64
+    shrink-0
+    min-h-screen
+    bg-[#0B1220]
+    text-white
+    flex-col
+    justify-between
+    transition-all
+    duration-300
+    ">
 
       <div>
 

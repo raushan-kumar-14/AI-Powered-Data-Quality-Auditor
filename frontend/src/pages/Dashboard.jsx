@@ -7,10 +7,11 @@ export default function Dashboard() {
     <div className="flex min-h-screen bg-slate-100">
       <Sidebar />
 
-      <div className="flex-1">
+      <div className="flex-1 min-w-0 overflow-x-hidden">
+
         <Navbar />
 
-        <main className="p-8">
+        <main className="w-full max-w-full px-4 sm:px-6 lg:px-8 py-6">
           <h1 className="text-4xl font-bold mb-2">
             AI Data Quality Auditor
           </h1>

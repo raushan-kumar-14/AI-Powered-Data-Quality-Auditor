@@ -37,6 +37,9 @@ export default function FileUpload() {
   const [audit, setAudit] = useState(null);
   const [globalFilter, setGlobalFilter] = useState("");
 
+  const [missingPage, setMissingPage] = useState(0);
+  const ITEMS_PER_PAGE = 10;
+
 
   const handleUpload = async () => {
     if (!selectedFile) {
@@ -179,8 +182,17 @@ const downloadExcelReport = () => {
     `${audit.filename}-audit-report.xlsx`
   );
 };
+  
+  const missingData = missingChartData.slice(
+  missingPage * ITEMS_PER_PAGE,
+  (missingPage + 1) * ITEMS_PER_PAGE
+);
+
+const totalMissingPages = Math.ceil(
+  missingChartData.length / ITEMS_PER_PAGE
+);
   return (
-    <div className="bg-white rounded-3xl border-2 border-dashed border-indigo-300 shadow-sm p-14">
+    <div className="w-full max-w-7xl mx-auto bg-white rounded-3xl border-2 border-dashed border-indigo-300 shadow-sm p-4 sm:p-6 lg:p-10">
 
     <div className="flex justify-center">
 
@@ -195,7 +207,7 @@ const downloadExcelReport = () => {
 
     </div>
 
-    <h2 className="text-5xl font-bold text-center mt-8">
+    <h2 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-center mt-8">
 
         Upload Dataset
 
@@ -217,10 +229,10 @@ const downloadExcelReport = () => {
 
     <label
         htmlFor="csvUpload"
-        className="mt-10 mx-auto w-[650px] h-16 bg-white rounded-xl
-        border border-gray-300 shadow-sm
-        flex items-center justify-between
-        px-6 cursor-pointer hover:border-indigo-500 transition"
+        className="mt-10 mx-auto w-full max-w-full sm:max-w-xl lg:max-w-2xl
+        min-h-16 bg-white rounded-xl border border-gray-300 shadow-sm
+        flex flex-col sm:flex-row items-center justify-between gap-4
+        px-4 sm:px-6 cursor-pointer hover:border-indigo-500 transition"
     >
 
         <div className="flex items-center gap-3">
@@ -305,12 +317,12 @@ const downloadExcelReport = () => {
       {audit && (
   <div className="mt-12">
 
-    <div className="flex justify-between items-center mb-8">
+    <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4 mb-8">
   <h2 className="text-3xl font-bold text-gray-800">
     Audit Results
   </h2>
 
-  <div className="flex gap-3">
+  <div className="flex flex-wrap gap-3">
   <button
     onClick={downloadExcelReport}
     className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg shadow transition"
@@ -344,7 +356,7 @@ const downloadExcelReport = () => {
             innerRadius={65}
             outerRadius={110}
             paddingAngle={3}
-            label={({ name, value }) => `${name}: ${value}%`}
+            label={false}
             >
           {chartData.map((entry, index) => (
             <Cell
@@ -358,7 +370,7 @@ const downloadExcelReport = () => {
       </PieChart>
     </ResponsiveContainer>
 
-    <div className="flex justify-center gap-8 mt-6 flex-wrap">
+    <div className="flex flex-wrap justify-center gap-4 py-4">
     {chartData.map((item, index) => (
         <div key={item.name} className="flex items-center gap-2">
         <div
@@ -375,7 +387,15 @@ const downloadExcelReport = () => {
   </div>
 </div>
 
-<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-6">
+<div className="
+grid
+grid-cols-1
+sm:grid-cols-2
+md:grid-cols-2
+lg:grid-cols-3
+xl:grid-cols-6
+gap-6
+">
 
       <div className="bg-white rounded-2xl shadow-md p-6 border hover:shadow-xl transition">
         <div className="w-12 h-12 rounded-xl bg-indigo-100 flex items-center justify-center mb-4">
@@ -478,7 +498,7 @@ const downloadExcelReport = () => {
   Data Insights
 </h2>
 
-<div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 
   <div className="bg-indigo-50 rounded-xl p-5 border">
     <p className="text-sm text-gray-500">Rows</p>
@@ -665,7 +685,7 @@ const downloadExcelReport = () => {
 
 </div>
 <div className="mt-10 bg-white rounded-2xl shadow-md border p-6">
-  <div className="flex justify-between items-center mb-6">
+  <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
   <h2 className="text-2xl font-bold text-gray-800">
     Data Preview
   </h2>
@@ -675,11 +695,11 @@ const downloadExcelReport = () => {
     placeholder="Search..."
     value={globalFilter}
     onChange={(e) => setGlobalFilter(e.target.value)}
-    className="border border-gray-300 rounded-lg px-4 py-2 w-72 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+    className="border border-gray-300 rounded-lg px-4 py-2 w-full sm:w-72 focus:outline-none focus:ring-2 focus:ring-indigo-500"
   />
 </div>
 
-  <div className="overflow-x-auto">
+  <div className="w-full overflow-x-auto">
     <table className="min-w-full border-collapse">
       <thead>
         <tr className="bg-indigo-600 text-white">
