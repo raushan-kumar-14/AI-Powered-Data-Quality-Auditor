@@ -1,4 +1,7 @@
 import { useState, useMemo } from "react";
+import CorrelationHeatmap from "./CorrelationHeatmap";
+import AuditHistory from "./AuditHistory";
+import DatasetHealth from "./DatasetHealth";
 import jsPDF from "jspdf";
 import * as XLSX from "xlsx";
 import { FaCloudUploadAlt, FaFileAlt, FaUpload } from "react-icons/fa";
@@ -40,6 +43,9 @@ export default function FileUpload() {
   const [missingPage, setMissingPage] = useState(0);
   const ITEMS_PER_PAGE = 10;
 
+  const [cleanResult, setCleanResult] = useState(null);
+  const [cleaning, setCleaning] = useState(false);
+
 
   const handleUpload = async () => {
     if (!selectedFile) {
@@ -62,6 +68,34 @@ export default function FileUpload() {
       setLoading(false);
     }
   };
+
+  const handleCleanDataset = async () => {
+  if (!selectedFile) {
+    alert("Please select a CSV file.");
+    return;
+  }
+
+  try {
+    setCleaning(true);
+
+    const formData = new FormData();
+    formData.append("file", selectedFile);
+
+    const response = await fetch("http://127.0.0.1:8000/clean-dataset", {
+      method: "POST",
+      body: formData,
+    });
+
+    const data = await response.json();
+
+    setCleanResult(data);
+  } catch (err) {
+    console.error(err);
+    alert("Cleaning failed.");
+  } finally {
+    setCleaning(false);
+  }
+};
 
   const chartData = audit
   ? [
@@ -275,7 +309,7 @@ const totalMissingPages = Math.ceil(
 
     </p>
 
-    <div className="flex justify-center">
+    <div className="mt-8 flex flex-col sm:flex-row justify-center items-center gap-4">
 
         <button
 
@@ -284,8 +318,10 @@ const totalMissingPages = Math.ceil(
             disabled={loading}
 
             className="
-            mt-8
+            w-full
+            sm:w-64
             flex
+            justify-center
             items-center
             gap-3
             bg-gradient-to-r
@@ -294,12 +330,11 @@ const totalMissingPages = Math.ceil(
             hover:scale-105
             transition
             text-white
-            px-10
             py-4
             rounded-xl
             shadow-lg
             font-semibold
-        "
+            "
 
         >
 
@@ -310,6 +345,29 @@ const totalMissingPages = Math.ceil(
                 : "Upload Dataset"}
 
         </button>
+
+        <button
+        onClick={handleCleanDataset}
+        disabled={cleaning}
+        className="
+          w-full
+          sm:w-64
+          flex
+          justify-center
+          items-center
+          gap-3
+          bg-green-600
+          hover:bg-green-700
+          transition
+          text-white
+          py-4
+          rounded-xl
+          shadow-lg
+          font-semibold
+          "
+    >
+        {cleaning ? "Cleaning Dataset..." : "Simulate AI Cleaning"}
+    </button>
 
     </div>
 
@@ -631,6 +689,13 @@ gap-6
     )}
 </div>
 </div>
+
+<CorrelationHeatmap
+  correlationMatrix={audit?.correlation_matrix}
+/>
+
+<DatasetHealth audit={audit} />
+
 <div className="mt-10 bg-white rounded-2xl shadow-md border p-6">
 
   <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -820,7 +885,7 @@ gap-6
 </div>
 
     </div>
-
+  <AuditHistory />
   </div>
 )}
     </div>
