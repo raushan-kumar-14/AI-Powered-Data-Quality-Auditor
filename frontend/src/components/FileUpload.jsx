@@ -667,6 +667,8 @@ gap-6
       </p>
     </div>
 
+
+
     <div>
       <p className="text-sm text-gray-500">Numeric Columns</p>
       <p className="font-semibold">
@@ -685,6 +687,85 @@ gap-6
 
 </div>
 <div className="mt-10 bg-white rounded-2xl shadow-md border p-6">
+
+  <div className="mt-10 bg-white rounded-2xl shadow-md border p-6">
+
+  <h2 className="text-2xl font-bold text-gray-800 mb-6">
+    AI Cleaning Recommendations
+  </h2>
+
+  {audit.recommendations?.length > 0 ? (
+
+    <div className="overflow-x-auto">
+
+      <table className="min-w-full border-collapse">
+
+        <thead>
+
+          <tr className="bg-indigo-600 text-white">
+
+            <th className="p-3 text-left">Column</th>
+
+            <th className="p-3 text-left">Issue</th>
+
+            <th className="p-3 text-left">Recommendation</th>
+
+          </tr>
+
+        </thead>
+
+        <tbody>
+
+          {audit.recommendations.map((item, index) => (
+
+            <tr
+              key={index}
+              className="border-b hover:bg-gray-50"
+            >
+
+              <td className="p-3 font-medium">
+                {item.column}
+              </td>
+
+              <td className="p-3">
+                {item.issue}
+              </td>
+
+              <td className="p-3">
+
+                <span
+                  className={`px-3 py-1 rounded-full text-sm font-medium ${
+                    item.recommendation.includes("Drop")
+                      ? "bg-red-100 text-red-700"
+                      : "bg-yellow-100 text-yellow-700"
+                  }`}
+                >
+
+                  {item.recommendation}
+
+                </span>
+
+              </td>
+
+            </tr>
+
+          ))}
+
+        </tbody>
+
+      </table>
+
+    </div>
+
+  ) : (
+
+    <p className="text-green-600">
+      No cleaning recommendations.
+    </p>
+
+  )}
+
+</div>
   <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
   <h2 className="text-2xl font-bold text-gray-800">
     Data Preview

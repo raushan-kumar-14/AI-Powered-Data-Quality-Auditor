@@ -42,6 +42,7 @@ async def upload_dataset(file: UploadFile = File(...)):
     "categorical_columns": result["categorical_columns"],
     "preview": result["preview"],
     "columns": result["columns"],
+    "recommendations": result["recommendations"],
 }
 }
     

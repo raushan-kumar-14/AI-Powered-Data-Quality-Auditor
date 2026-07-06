@@ -85,7 +85,35 @@ def analyze_dataset(file_path: str, filename: str):
     db.commit()
     db.refresh(audit)
     db.close()
+    
+    recommendations = []
 
+    for column in df.columns:
+        missing = int(df[column].isna().sum())
+
+        if missing > 0:
+            percentage = (missing / len(df)) * 100
+
+            if percentage > 50:
+                recommendations.append({
+                    "column": column,
+                    "issue": f"{missing} missing values ({percentage:.1f}%)",
+                    "recommendation": "Consider dropping this column"
+                })
+
+            elif pd.api.types.is_numeric_dtype(df[column]):
+                recommendations.append({
+                    "column": column,
+                    "issue": f"{missing} missing values ({percentage:.1f}%)",
+                    "recommendation": "Fill missing values using Median"
+                })
+
+            else:
+                recommendations.append({
+                    "column": column,
+                    "issue": f"{missing} missing values ({percentage:.1f}%)",
+                    "recommendation": "Fill missing values using Mode"
+                })
     return {
     "audit": audit,
     "preview": preview,
@@ -97,4 +125,5 @@ def analyze_dataset(file_path: str, filename: str):
 
     "numeric_columns": numeric_columns,
     "categorical_columns": categorical_columns,
+    "recommendations": recommendations
 }
