@@ -4,6 +4,7 @@ import {
   FaFileAlt,
   FaDatabase
 } from "react-icons/fa";
+import { NavLink } from "react-router-dom";
 
 export default function Sidebar() {
   return (
@@ -51,29 +52,47 @@ export default function Sidebar() {
 
         <nav className="mt-8 px-4 space-y-3">
 
-          <button className="w-full flex items-center gap-4 bg-gradient-to-r from-indigo-600 to-blue-600 rounded-xl px-5 py-4 shadow-lg">
-
+          <NavLink
+            to="/"
+            className={({ isActive }) =>
+              `w-full flex items-center gap-4 rounded-xl px-5 py-4 transition ${
+                isActive
+                  ? "bg-gradient-to-r from-indigo-600 to-blue-600 shadow-lg"
+                  : "text-slate-300 hover:bg-slate-800"
+              }`
+            }
+          >
             <FaHome />
+            Home
+          </NavLink>
 
-            Dashboard
-
-          </button>
-
-          <button className="w-full flex items-center gap-4 text-slate-300 hover:bg-slate-800 rounded-xl px-5 py-4 transition">
-
+          <NavLink
+            to="/analytics"
+            className={({ isActive }) =>
+              `w-full flex items-center gap-4 rounded-xl px-5 py-4 transition ${
+                isActive
+                  ? "bg-gradient-to-r from-indigo-600 to-blue-600 shadow-lg"
+                  : "text-slate-300 hover:bg-slate-800"
+              }`
+            }
+          >
             <FaChartBar />
-
             Analytics
+          </NavLink>
 
-          </button>
-
-          <button className="w-full flex items-center gap-4 text-slate-300 hover:bg-slate-800 rounded-xl px-5 py-4 transition">
-
+          <NavLink
+            to="/reports"
+            className={({ isActive }) =>
+              `w-full flex items-center gap-4 rounded-xl px-5 py-4 transition ${
+                isActive
+                  ? "bg-gradient-to-r from-indigo-600 to-blue-600 shadow-lg"
+                  : "text-slate-300 hover:bg-slate-800"
+              }`
+            }
+          >
             <FaFileAlt />
-
             Reports
-
-          </button>
+          </NavLink>
 
         </nav>
 

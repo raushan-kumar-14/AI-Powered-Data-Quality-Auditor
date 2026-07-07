@@ -21,6 +21,21 @@ def analyze_dataset(file_path: str, filename: str):
     )
     
     numeric_summary = {}
+    
+    correlation_matrix = {}
+
+    outlier_summary = {}
+
+    dataset_memory = round(
+        df.memory_usage(deep=True).sum() / 1024,
+        2
+    )
+
+    uniqueness = {}
+
+    skewness = {}
+
+    kurtosis = {}
 
     numeric_df = df.select_dtypes(include="number")
 
@@ -43,6 +58,42 @@ def analyze_dataset(file_path: str, filename: str):
             "max":
                 numeric_df.max().round(2).to_dict(),
         }
+        
+        correlation_matrix = (
+            numeric_df.corr()
+            .round(2)
+            .fillna(0)
+            .to_dict()
+        )
+
+        skewness = (
+            numeric_df.skew()
+            .round(2)
+            .to_dict()
+        )
+
+        kurtosis = (
+            numeric_df.kurtosis()
+            .round(2)
+            .to_dict()
+        )
+
+        for column in numeric_df.columns:
+            q1 = numeric_df[column].quantile(0.25)
+            q3 = numeric_df[column].quantile(0.75)
+            iqr = q3 - q1
+
+            lower = q1 - 1.5 * iqr
+            upper = q3 + 1.5 * iqr
+
+            outliers = int(
+                (
+                    (numeric_df[column] < lower) |
+                    (numeric_df[column] > upper)
+                ).sum()
+            )
+
+            outlier_summary[column] = outliers
     
     preview = df.head(10).fillna("").to_dict(orient="records")
     columns = df.columns.tolist()
@@ -51,6 +102,12 @@ def analyze_dataset(file_path: str, filename: str):
     categorical_columns = len(
         df.select_dtypes(include=["object", "category"]).columns
     )
+    
+    for column in df.columns:
+        uniqueness[column] = round(
+            (df[column].nunique() / len(df)) * 100,
+            2
+        )
 
     total_rows = len(df)
     total_columns = len(df.columns)
@@ -125,5 +182,37 @@ def analyze_dataset(file_path: str, filename: str):
 
     "numeric_columns": numeric_columns,
     "categorical_columns": categorical_columns,
-    "recommendations": recommendations
-}
+    "recommendations": recommendations,
+    
+    "correlation_matrix": correlation_matrix,
+
+    "outlier_summary": outlier_summary,
+
+    "dataset_memory_kb": dataset_memory,
+
+    "uniqueness": uniqueness,
+
+    "skewness": skewness,
+
+    "kurtosis": kurtosis,
+    }
+    
+def clean_dataset(df):
+    cleaned = df.copy()
+
+    for column in cleaned.columns:
+        if cleaned[column].isna().sum() == 0:
+            continue
+
+        if pd.api.types.is_numeric_dtype(cleaned[column]):
+            cleaned[column] = cleaned[column].fillna(
+                cleaned[column].median()
+            )
+        else:
+            cleaned[column] = cleaned[column].fillna(
+                cleaned[column].mode()[0]
+            )
+
+    cleaned = cleaned.drop_duplicates()
+
+    return cleaned
