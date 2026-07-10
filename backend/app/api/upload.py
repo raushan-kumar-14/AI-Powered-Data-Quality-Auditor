@@ -43,6 +43,13 @@ async def upload_dataset(file: UploadFile = File(...)):
     "preview": result["preview"],
     "columns": result["columns"],
     "recommendations": result["recommendations"],
+    "correlation_matrix": result["correlation_matrix"],
+    "outlier_summary": result["outlier_summary"],
+    "dataset_memory_kb": result["dataset_memory_kb"],
+    "uniqueness": result["uniqueness"],
+    "skewness": result["skewness"],
+    "kurtosis": result["kurtosis"],
+    "total_anomalies": result["total_anomalies"],
 }
 }
     

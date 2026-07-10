@@ -51,7 +51,7 @@ export default function DatasetHealth({ audit }) {
         Dataset Health
       </h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
 
         <div className="rounded-xl bg-blue-50 p-4">
           <p>Memory</p>
@@ -61,6 +61,11 @@ export default function DatasetHealth({ audit }) {
         <div className="rounded-xl bg-red-50 p-4">
           <p>Outliers</p>
           <h3>{outliers}</h3>
+        </div>
+
+        <div className="rounded-xl bg-orange-50 p-4">
+          <p>AI Anomalies</p>
+          <h3>{audit.total_anomalies ?? 0}</h3>
         </div>
 
         <div className="rounded-xl bg-green-50 p-4">

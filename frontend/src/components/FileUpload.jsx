@@ -696,6 +696,53 @@ gap-6
 
 <DatasetHealth audit={audit} />
 
+{cleanResult && (
+  <div className="mt-8 bg-white rounded-2xl shadow-md border p-6">
+    <h2 className="text-2xl font-bold mb-6">
+      AI Cleaning Simulation Result
+    </h2>
+
+    <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+
+      <div className="bg-blue-50 rounded-xl p-4">
+        <p className="text-sm text-gray-500">Rows Before</p>
+        <h3 className="text-2xl font-bold">
+          {cleanResult.rows_before}
+        </h3>
+      </div>
+
+      <div className="bg-green-50 rounded-xl p-4">
+        <p className="text-sm text-gray-500">Rows After</p>
+        <h3 className="text-2xl font-bold">
+          {cleanResult.rows_after}
+        </h3>
+      </div>
+
+      <div className="bg-yellow-50 rounded-xl p-4">
+        <p className="text-sm text-gray-500">Missing Before</p>
+        <h3 className="text-2xl font-bold">
+          {cleanResult.missing_before}
+        </h3>
+      </div>
+
+      <div className="bg-green-100 rounded-xl p-4">
+        <p className="text-sm text-gray-500">Missing After</p>
+        <h3 className="text-2xl font-bold">
+          {cleanResult.missing_after}
+        </h3>
+      </div>
+
+      <div className="bg-red-50 rounded-xl p-4">
+        <p className="text-sm text-gray-500">Duplicates Removed</p>
+        <h3 className="text-2xl font-bold">
+          {cleanResult.duplicates_removed}
+        </h3>
+      </div>
+
+    </div>
+  </div>
+)}
+
 <div className="mt-10 bg-white rounded-2xl shadow-md border p-6">
 
   <h2 className="text-2xl font-bold text-gray-800 mb-6">

@@ -1,7 +1,16 @@
 import pandas as pd
 
+from app.charts.chart_generator import (
+    generate_missing_values_chart,
+    generate_correlation_heatmap,
+)
+
+from app.services.ml_service import detect_anomalies
+
 from app.database.database import SessionLocal
 from app.models.audit import Audit
+
+from app.charts.chart_generator import generate_missing_values_chart
 
 
 def analyze_dataset(file_path: str, filename: str):
@@ -11,6 +20,15 @@ def analyze_dataset(file_path: str, filename: str):
     df.isnull()
       .sum()
       .to_dict()
+    )
+    missing_chart = generate_missing_values_chart(
+        missing_by_column,
+        filename.replace(".csv", "")
+    )
+
+    correlation_chart = generate_correlation_heatmap(
+        df,
+        filename.replace(".csv", "")
     )
 
     dtype_distribution = (
@@ -98,6 +116,7 @@ def analyze_dataset(file_path: str, filename: str):
     preview = df.head(10).fillna("").to_dict(orient="records")
     columns = df.columns.tolist()
     numeric_columns = len(df.select_dtypes(include="number").columns)
+    anomaly_result = detect_anomalies(df)
 
     categorical_columns = len(
         df.select_dtypes(include=["object", "category"]).columns
@@ -142,6 +161,10 @@ def analyze_dataset(file_path: str, filename: str):
     db.commit()
     db.refresh(audit)
     db.close()
+    missing_chart = generate_missing_values_chart(
+        missing_by_column,
+        filename.split(".")[0]
+    )
     
     recommendations = []
 
@@ -195,6 +218,14 @@ def analyze_dataset(file_path: str, filename: str):
     "skewness": skewness,
 
     "kurtosis": kurtosis,
+    
+    "total_anomalies": anomaly_result["total_anomalies"],
+
+    "anomaly_indices": anomaly_result["anomaly_indices"],
+    
+    "missing_chart": missing_chart,
+    
+    "correlation_chart": correlation_chart
     }
     
 def clean_dataset(df):
