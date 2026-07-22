@@ -86,3 +86,4 @@ temp/
 *.key
 *.crt
 backend/uploads/
+backend/generated_reports/
