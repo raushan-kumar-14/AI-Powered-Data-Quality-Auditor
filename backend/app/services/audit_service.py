@@ -10,8 +10,6 @@ from app.services.ml_service import detect_anomalies
 from app.database.database import SessionLocal
 from app.models.audit import Audit
 
-from app.charts.chart_generator import generate_missing_values_chart
-
 
 def analyze_dataset(file_path: str, filename: str):
     df = pd.read_csv(file_path)
