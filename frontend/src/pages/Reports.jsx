@@ -11,7 +11,7 @@ export default function Reports() {
   const [sortBy, setSortBy] = useState("quality");
 
   useEffect(() => {
-    fetch("http://127.0.0.1:8000/audits")
+    fetch(`${import.meta.env.VITE_API_URL}/audits`)
       .then((res) => res.json())
       .then((data) => setAudits(data))
       .catch(console.error);

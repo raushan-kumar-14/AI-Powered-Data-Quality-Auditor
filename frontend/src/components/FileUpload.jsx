@@ -81,7 +81,7 @@ export default function FileUpload() {
     const formData = new FormData();
     formData.append("file", selectedFile);
 
-    const response = await fetch("http://127.0.0.1:8000/clean-dataset", {
+    const response = await fetch(`${import.meta.env.VITE_API_URL}/clean-dataset`, {
       method: "POST",
       body: formData,
     });

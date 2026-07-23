@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import axios from "axios";
+import api from "../services/api";
 
 export default function AuditHistory() {
   const [audits, setAudits] = useState([]);
@@ -10,7 +10,7 @@ export default function AuditHistory() {
 
   const loadAudits = async () => {
     try {
-      const res = await axios.get("http://127.0.0.1:8000/audits");
+      const res = await api.get("/audits");
       setAudits(res.data);
     } catch (err) {
       console.error(err);
@@ -19,7 +19,7 @@ export default function AuditHistory() {
 
   const deleteAudit = async (id) => {
   try {
-    await axios.delete(`http://127.0.0.1:8000/audits/${id}`);
+    await api.delete(`/audits/${id}`);
     loadAudits();
   } catch (err) {
     console.error(err);
